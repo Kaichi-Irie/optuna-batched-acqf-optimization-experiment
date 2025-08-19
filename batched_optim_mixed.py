@@ -214,9 +214,16 @@ def local_search_mixed(
     return best_normalized_params, best_fval
 
 
+def run_local_search_wrapper_with_kwargs(
+    acqf: BaseAcquisitionFunc, initial_normalized_params: np.ndarray, tol: float = 1e-4
+):
+    return local_search_mixed(acqf, initial_normalized_params, tol=tol)
+
+
 def optimize_acqf_mixed(
     acqf: BaseAcquisitionFunc,
     *,
+    worker_pool,
     warmstart_normalized_params_array: np.ndarray | None = None,
     n_preliminary_samples: int = 2048,
     n_local_search: int = 10,
@@ -268,6 +275,24 @@ def optimize_acqf_mixed(
     best_x = sampled_xs[max_i, :]
     best_f = float(f_vals[max_i])
 
+    # If the worker pool is available, we run local search in parallel.
+    if worker_pool is not None:
+        results = worker_pool.starmap(
+            run_local_search_wrapper_with_kwargs,
+            [
+                (acqf, x_warmstart, tol)
+                for x_warmstart in np.vstack(
+                    [sampled_xs[chosen_idxs, :], warmstart_normalized_params_array]
+                )
+            ],
+        )
+        for x, f in results:
+            if f > best_f:
+                best_x = x
+                best_f = f
+        return best_x, best_f
+
+    # Sequentially run local search for each warmstart point.
     for x_warmstart in np.vstack(
         [sampled_xs[chosen_idxs, :], warmstart_normalized_params_array]
     ):
