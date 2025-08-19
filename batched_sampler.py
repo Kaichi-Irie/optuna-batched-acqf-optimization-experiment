@@ -8,7 +8,7 @@ from optuna.samplers import GPSampler
 import multiprocessing_optim_mixed
 import stacking_optim_mixed
 
-SAMPLERMODE = Literal["stacking", "batched_acqf_eval", "multiprocessing"]
+SAMPLERMODE = Literal["stacking", "batched_acqf_eval", "multiprocessing", "original"]
 
 
 class BatchedSampler(GPSampler):
@@ -67,5 +67,7 @@ class BatchedSampler(GPSampler):
                 )
             )
             return normalized_params
+        if self.mode == "original":
+            return super()._optimize_acqf(acqf, best_params)
         else:
             raise ValueError(f"Invalid mode: {self.mode}.")
