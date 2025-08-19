@@ -15,7 +15,7 @@ def objective(trial):
 
 
 def run_multiprocessing(processes):
-    sampler = BatchedSampler(batch_size=10, seed=SEED)
+    sampler = BatchedSampler(batch_size=10, mode="multiprocessing", seed=SEED)
     sampler.create_worker_pool(processes=processes)
     study = optuna.create_study(sampler=sampler)
     study.optimize(objective, n_trials=N_TRIALS)

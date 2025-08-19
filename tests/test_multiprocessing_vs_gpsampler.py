@@ -23,7 +23,7 @@ def test_batched_sampler_matches_original(processes):
     original_study.optimize(objective, n_trials=N_TRIALS)
 
     # Batched (parallelized local search inside acquisition optimization)
-    batched_sampler = BatchedSampler(batch_size=8, seed=SEED)
+    batched_sampler = BatchedSampler(batch_size=8, mode="multiprocessing", seed=SEED)
     batched_sampler.create_worker_pool(processes=processes)
     batched_study = optuna.create_study(sampler=batched_sampler)
     try:
@@ -48,6 +48,6 @@ def test_batched_sampler_matches_original(processes):
                 f"Param {k} differs at trial {t_orig.number}: {t_orig.params[k]} vs {t_batch.params[k]}"
             )
         # Objective values match
-        assert math.isclose(t_orig.value, t_batch.value, rel_tol=1e-9, abs_tol=1e-12), (
+        assert math.isclose(t_orig.value, t_batch.value, rel_tol=1e-9, abs_tol=1e-12), (  # type: ignore
             f"Value differs at trial {t_orig.number}: {t_orig.value} vs {t_batch.value}"
         )

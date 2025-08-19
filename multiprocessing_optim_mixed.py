@@ -119,6 +119,9 @@ def optimize_acqf_mixed(
     tol: float = 1e-4,
     rng: np.random.RandomState | None = None,
 ) -> tuple[np.ndarray, float]:
+    if worker_pool is None:
+        raise ValueError("Worker pool must be provided for multiprocessing.")
+
     rng = rng or np.random.RandomState()
 
     if warmstart_normalized_params_array is None:
@@ -165,29 +168,17 @@ def optimize_acqf_mixed(
     best_f = float(f_vals[max_i])
 
     # If the worker pool is available, we run local search in parallel.
-    if worker_pool is not None:
-        results = worker_pool.starmap(
-            run_local_search_wrapper_with_kwargs,
-            [
-                (acqf, x_warmstart, tol)
-                for x_warmstart in np.vstack(
-                    [sampled_xs[chosen_idxs, :], warmstart_normalized_params_array]
-                )
-            ],
-        )
-        for x, f in results:
-            if f > best_f:
-                best_x = x
-                best_f = f
-        return best_x, best_f
-
-    # Sequentially run local search for each warmstart point.
-    for x_warmstart in np.vstack(
-        [sampled_xs[chosen_idxs, :], warmstart_normalized_params_array]
-    ):
-        x, f = local_search_mixed(acqf, x_warmstart, tol=tol)
+    results = worker_pool.starmap(
+        run_local_search_wrapper_with_kwargs,
+        [
+            (acqf, x_warmstart, tol)
+            for x_warmstart in np.vstack(
+                [sampled_xs[chosen_idxs, :], warmstart_normalized_params_array]
+            )
+        ],
+    )
+    for x, f in results:
         if f > best_f:
             best_x = x
             best_f = f
-
     return best_x, best_f
