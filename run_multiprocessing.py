@@ -5,7 +5,7 @@ import optuna
 
 from batched_sampler import BatchedSampler
 
-N_TRIALS = 50
+N_TRIALS = 300
 SEED = 42
 DIMENSION = 10
 
@@ -36,4 +36,4 @@ if __name__ == "__main__":
     start = time.time()
     run_multiprocessing(processes=processes)
     end = time.time()
-    print(f"{processes} processes took {end - start:.2f} seconds")
+    print(f"{processes} processes took {end - start:.2e} seconds")

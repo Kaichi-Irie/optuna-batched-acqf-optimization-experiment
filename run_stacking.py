@@ -3,7 +3,7 @@ import optuna
 
 from batched_sampler import BatchedSampler
 
-N_TRIALS = 500
+N_TRIALS = 300
 SEED = 42
 DIMENSION = 10
 
@@ -22,14 +22,14 @@ def objective(trial):
 
 
 sampler = BatchedSampler(mode="stacking", seed=SEED)
-study_stacking = optuna.create_study(sampler=sampler)
-study_stacking.optimize(objective, n_trials=N_TRIALS)
+study = optuna.create_study(sampler=sampler)
+study.optimize(objective, n_trials=N_TRIALS)
 
-t_stacking = (
-    study_stacking.trials[-1].datetime_complete
-    - study_stacking.trials[0].datetime_start
+elapsed = (
+    study.trials[-1].datetime_complete
+    - study.trials[0].datetime_start
 ).total_seconds()
 
 print(
-    f"Stacking took {t_stacking:.2f} seconds. Best trial value: {study_stacking.best_trial.value:.2e}"
+    f"Stacking took {elapsed:.2e} seconds. Best trial value: {study.best_trial.value:.2e}"
 )
