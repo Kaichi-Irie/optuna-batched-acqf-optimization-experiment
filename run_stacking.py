@@ -7,10 +7,10 @@ N_TRIALS = 500
 SEED = 42
 DIMENSION = 10
 
-
 # generate random rotate matrix using QR decomposition
-R, _ = np.linalg.qr(np.random.randn(DIMENSION, DIMENSION))
-w = np.random.random(DIMENSION) * 1000
+rng = np.random.default_rng(SEED)
+R, _ = np.linalg.qr(rng.normal(size=(DIMENSION, DIMENSION)))
+w = rng.random(DIMENSION) * 1000
 w /= w.sum()
 assert np.allclose(R @ R.T, np.eye(DIMENSION))
 
