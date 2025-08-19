@@ -12,9 +12,8 @@ SAMPLERMODE = Literal["stacking", "batched_acqf_eval", "multiprocessing"]
 
 
 class BatchedSampler(GPSampler):
-    def __init__(self, batch_size: int, mode: SAMPLERMODE, *args, **kwargs):
+    def __init__(self, mode: SAMPLERMODE, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.batch_size: int = batch_size
         self.worker_pool = None
         self.processes: int | None = None
         self.mode: SAMPLERMODE = mode
@@ -38,7 +37,17 @@ class BatchedSampler(GPSampler):
         assert best_params is None or len(best_params.shape) == 2
 
         if self.mode == "stacking":
-            raise ValueError("Stacking mode is not implemented.")
+            # batched_size is set as n_local_search (=10) inside stacking_optim_mixed
+            normalized_params, _acqf_val = stacking_optim_mixed.optimize_acqf_mixed(
+                acqf,
+                warmstart_normalized_params_array=best_params,
+                n_preliminary_samples=self._n_preliminary_samples,
+                n_local_search=self._n_local_search,
+                tol=self._tol,
+                rng=self._rng.rng,
+            )
+            return normalized_params
+            # raise ValueError("Stacking mode is not implemented.")
         if self.mode == "batched_acqf_eval":
             raise ValueError(
                 "Batched acquisition function evaluation is not implemented."
