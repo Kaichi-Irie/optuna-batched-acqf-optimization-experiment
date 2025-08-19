@@ -4,12 +4,11 @@ import math
 from typing import TYPE_CHECKING
 
 import numpy as np
+import torch
 from optuna._gp.scipy_blas_thread_patch import (
     single_blas_thread_if_scipy_v1_15_or_newer,
 )
 from optuna.logging import get_logger
-
-from acqf_wrapper import AcqfWrapper
 
 if TYPE_CHECKING:
     import scipy.optimize as so
@@ -23,7 +22,7 @@ _logger = get_logger(__name__)
 
 
 def _gradient_ascent(
-    acqf_wrapper: AcqfWrapper,
+    acqf: BaseAcquisitionFunc,
     initial_params: np.ndarray,  # (B,D)
     initial_fval: float,  #  (B,)
     continuous_indices: np.ndarray,
@@ -47,7 +46,7 @@ def _gradient_ascent(
     """
     if len(continuous_indices) == 0:
         return initial_params, initial_fval, False
-    batch_size, dimension = acqf_wrapper.batch_size, acqf_wrapper.dimension
+    batch_size, dimension = initial_params.shape
     if len(continuous_indices) != dimension:
         raise ValueError("Incompatible continuous indices.")
 
@@ -69,7 +68,8 @@ def _gradient_ascent(
         # (fval, grad) = acqf.eval_acqf_with_grad(normalized_params)  # (1,), (D,)
 
         # fvals: (B,), x_tensor: (B,D)
-        fvals, x_tensor = acqf_wrapper.eval_acqf_from_numpy(normalized_params)
+        x_tensor = torch.from_numpy(normalized_params).requires_grad_(True)
+        fvals = acqf.eval_acqf(x_tensor)
         # fval: (1,)
         fval = fvals.sum()
         fval.backward()  # type: ignore
@@ -119,13 +119,13 @@ def _gradient_ascent(
 
 
 def local_search_mixed_stacked(
-    acqf_wrapper: AcqfWrapper,
+    acqf: BaseAcquisitionFunc,
     initial_normalized_params_list: np.ndarray,  # (D,) -> (B,D)
     *,
     tol: float = 1e-4,
     max_iter: int = 100,
 ) -> tuple[np.ndarray, float]:
-    continuous_indices = acqf_wrapper.search_space.continuous_indices
+    continuous_indices = acqf.search_space.continuous_indices
     # assert initial_normalized_params_list.ndim == 2
     # if len(continuous_indices) != len(initial_normalized_params_list):
     #     raise ValueError("Only continuous optimization is supported.")
@@ -137,16 +137,16 @@ def local_search_mixed_stacked(
     # but for simplicity, the ones from the objective function are being reused.
     # TODO(kAIto47802): Think of a better way to handle this.
     batch_size, dimension = initial_normalized_params_list.shape
-    lengthscales = acqf_wrapper.length_scales  # (D,)
+    lengthscales = acqf.length_scales  # (D,)
     assert lengthscales.shape == (dimension,)
     best_normalized_params_list = initial_normalized_params_list.copy()  # (D,) -> (B,D)
     assert best_normalized_params_list.shape == (batch_size, dimension)
     best_fval = sum(
-        [float(acqf_wrapper.eval_acqf_no_grad(p)) for p in best_normalized_params_list]
+        [float(acqf.eval_acqf_no_grad(p)) for p in best_normalized_params_list]
     )
 
     (best_normalized_params_list, best_fval, _) = _gradient_ascent(
-        acqf_wrapper,
+        acqf,
         best_normalized_params_list,
         best_fval,
         continuous_indices,
@@ -213,7 +213,6 @@ def optimize_acqf_mixed(
     dimension = sampled_xs.shape[1]
 
     batch_size = n_local_search
-    acqf_wrapper = AcqfWrapper(acqf, batch_size=batch_size, dimension=dimension)
 
     # x_warmstarts: (B,D)
     x_warmstarts = np.vstack(
@@ -221,10 +220,10 @@ def optimize_acqf_mixed(
     )
     assert x_warmstarts.shape == (batch_size, dimension)
     # xs: (B,D)
-    xs, f_sum = local_search_mixed_stacked(acqf_wrapper, x_warmstarts, tol=tol)
+    xs, f_sum = local_search_mixed_stacked(acqf, x_warmstarts, tol=tol)
     assert xs.shape == (batch_size, dimension)
     for x in xs:
-        f = float(acqf_wrapper.eval_acqf_no_grad(x))
+        f = float(acqf.eval_acqf_no_grad(x))
         if f > best_f:
             best_x = x
             best_f = f
