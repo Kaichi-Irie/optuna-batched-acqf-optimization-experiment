@@ -1,0 +1,17 @@
+[project]
+name = "optuna-batched-acqf-optimization-experiment"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy>=2.2.6",
+    "optuna>=4.5.0",
+    "scipy==1.14",
+    "torch>=2.8.0",
+]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=6.30.1",
+]
