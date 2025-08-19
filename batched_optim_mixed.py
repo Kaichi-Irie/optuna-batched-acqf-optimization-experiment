@@ -191,64 +191,26 @@ def local_search_mixed(
     max_iter: int = 100,
 ) -> tuple[np.ndarray, float]:
     continuous_indices = acqf.search_space.continuous_indices
-
+    if len(continuous_indices) != len(initial_normalized_params):
+        raise ValueError("Only continuous optimization is supported.")
     # This is a technique for speeding up optimization.
     # We use an isotropic kernel, so scaling the gradient will make
     # the hessian better-conditioned.
     # NOTE: Ideally, separating lengthscales should be used for the constraint functions,
     # but for simplicity, the ones from the objective function are being reused.
     # TODO(kAIto47802): Think of a better way to handle this.
-    lengthscales = acqf.length_scales[continuous_indices]
-
-    choices_of_discrete_params = acqf.search_space.get_choices_of_discrete_params()
-
-    discrete_xtols = [
-        # Terminate discrete optimizations once the change in x becomes smaller than this.
-        # Basically, if the change is smaller than min(dx) / 4, it is useless to see more details.
-        np.min(np.diff(choices), initial=np.inf) / 4
-        for choices in choices_of_discrete_params
-    ]
-
+    lengthscales = acqf.length_scales
     best_normalized_params = initial_normalized_params.copy()
     best_fval = float(acqf.eval_acqf_no_grad(best_normalized_params))
 
-    CONTINUOUS = -1
-    last_changed_param: int | None = None
-
-    for _ in range(max_iter):
-        if last_changed_param == CONTINUOUS:
-            # Parameters not changed since last time.
-            return best_normalized_params, best_fval
-        (best_normalized_params, best_fval, updated) = _gradient_ascent(
-            acqf,
-            best_normalized_params,
-            best_fval,
-            continuous_indices,
-            lengthscales,
-            tol,
-        )
-        if updated:
-            last_changed_param = CONTINUOUS
-
-        for i, choices, xtol in zip(
-            acqf.search_space.discrete_indices,
-            choices_of_discrete_params,
-            discrete_xtols,
-        ):
-            if last_changed_param == i:
-                # Parameters not changed since last time.
-                return best_normalized_params, best_fval
-            (best_normalized_params, best_fval, updated) = _local_search_discrete(
-                acqf, best_normalized_params, best_fval, i, choices, xtol
-            )
-            if updated:
-                last_changed_param = i
-
-        if last_changed_param is None:
-            # Parameters not changed from the beginning.
-            return best_normalized_params, best_fval
-
-    _logger.warning("local_search_mixed: Local search did not converge.")
+    (best_normalized_params, best_fval, _) = _gradient_ascent(
+        acqf,
+        best_normalized_params,
+        best_fval,
+        continuous_indices,
+        lengthscales,
+        tol,
+    )
     return best_normalized_params, best_fval
 
 
