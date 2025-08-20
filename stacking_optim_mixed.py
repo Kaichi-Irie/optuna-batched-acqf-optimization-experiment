@@ -120,16 +120,12 @@ def _gradient_ascent(
 
 def local_search_mixed_stacked(
     acqf: BaseAcquisitionFunc,
-    initial_normalized_params_list: np.ndarray,  # (D,) -> (B,D)
+    initial_normalized_params_list: np.ndarray,  # (B,D)
     *,
     tol: float = 1e-4,
     max_iter: int = 100,
 ) -> tuple[np.ndarray, float]:
     continuous_indices = acqf.search_space.continuous_indices
-    # assert initial_normalized_params_list.ndim == 2
-    # if len(continuous_indices) != len(initial_normalized_params_list):
-    #     raise ValueError("Only continuous optimization is supported.")
-
     # This is a technique for speeding up optimization.
     # We use an isotropic kernel, so scaling the gradient will make
     # the hessian better-conditioned.
