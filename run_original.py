@@ -26,10 +26,9 @@ study = optuna.create_study(sampler=sampler)
 study.optimize(objective, n_trials=N_TRIALS)
 
 elapsed = (
-    study.trials[-1].datetime_complete
-    - study.trials[0].datetime_start
+    study.trials[-1].datetime_complete - study.trials[0].datetime_start
 ).total_seconds()
 
 print(
-    f"Original took {elapsed:.2e} seconds. Best trial value: {study.best_trial.value:.2e}"
+    f"Original took {elapsed:.2f} seconds. Best trial value: {study.best_trial.value:.2e}"
 )

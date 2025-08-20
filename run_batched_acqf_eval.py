@@ -39,7 +39,7 @@ elapsed = (
 ).total_seconds()
 
 print(
-    f"batched took {elapsed:.2e} seconds. Best trial value: {study.best_trial.value:.2e}"
+    f"batched took {elapsed:.2f} seconds. Best trial value: {study.best_trial.value:.2e}"
 )
 
 # %%
