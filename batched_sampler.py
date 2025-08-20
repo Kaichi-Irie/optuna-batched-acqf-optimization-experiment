@@ -5,6 +5,7 @@ import numpy as np
 import optuna._gp.acqf as acqf_module
 from optuna.samplers import GPSampler
 
+import batched_acqf_eval_optim_mixed
 import multiprocessing_optim_mixed
 import stacking_optim_mixed
 
@@ -49,9 +50,17 @@ class BatchedSampler(GPSampler):
             return normalized_params
             # raise ValueError("Stacking mode is not implemented.")
         if self.mode == "batched_acqf_eval":
-            raise ValueError(
-                "Batched acquisition function evaluation is not implemented."
+            normalized_params, _acqf_val = (
+                batched_acqf_eval_optim_mixed.optimize_acqf_mixed(
+                    acqf,
+                    warmstart_normalized_params_array=best_params,
+                    n_preliminary_samples=self._n_preliminary_samples,
+                    n_local_search=self._n_local_search,
+                    tol=self._tol,
+                    rng=self._rng.rng,
+                )
             )
+            return normalized_params
         if self.mode == "multiprocessing":
             if self.worker_pool is None:
                 raise ValueError("Worker pool must be created before optimization.")
