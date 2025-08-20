@@ -15,7 +15,8 @@ uv run pytest
 
 # プロジェクト構成
 
-- `batched_sampler.py`: Optunaの`GPSampler`を継承したクラス。`mode`でバッチ化の方法を切り替えながらバッチ化を実行するSampler
+- `BatchedSampler`: Optunaの`GPSampler`を継承したクラス。`mode`でバッチ化の方法を切り替えながらバッチ化を実行するSampler
+    - `batched_sampler.py`で定義されている。
 
 - `multiprocessing`: GPSamplerのattributeにワーカープールを持たせてMulti-Processingを行う
     - `run_multiprocessing.py`: 実行例
