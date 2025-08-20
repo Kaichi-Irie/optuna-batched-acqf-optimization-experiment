@@ -35,10 +35,8 @@ def test_multiprocessing_sampler_matches_original(processes):
     batched_sampler = BatchedSampler(mode="multiprocessing", seed=SEED)
     batched_sampler.create_worker_pool(processes=processes)
     batched_study = optuna.create_study(sampler=batched_sampler)
-    try:
+    with batched_sampler:
         batched_study.optimize(objective, n_trials=N_TRIALS)
-    finally:
-        batched_sampler.shutdown_worker_pool()
 
     # Ensure same number of trials
     assert len(original_study.trials) == len(batched_study.trials) == N_TRIALS

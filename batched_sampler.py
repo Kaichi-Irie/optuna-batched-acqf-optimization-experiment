@@ -25,7 +25,18 @@ class BatchedSampler(GPSampler):
         self.processes = processes
         self.worker_pool = multiprocessing.Pool(processes=processes)
 
-    def shutdown_worker_pool(self):
+    def __enter__(self):
+        """
+        Create a worker pool for multiprocessing.
+        """
+        if self.mode == "multiprocessing" and self.processes is not None:
+            self.create_worker_pool(self.processes)
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """
+        Shut down the worker pool.
+        """
         if self.mode == "multiprocessing" and self.worker_pool is not None:
             self.worker_pool.close()
             self.worker_pool.join()

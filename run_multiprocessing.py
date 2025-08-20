@@ -1,5 +1,3 @@
-import time
-
 import numpy as np
 import optuna
 
@@ -28,12 +26,18 @@ def run_multiprocessing(processes):
     sampler = BatchedSampler(mode="multiprocessing", seed=SEED)
     sampler.create_worker_pool(processes=processes)
     study = optuna.create_study(sampler=sampler)
-    study.optimize(objective, n_trials=N_TRIALS)
+    with sampler:
+        study.optimize(objective, n_trials=N_TRIALS)
+
+    elapsed = (
+        study.trials[-1].datetime_complete - study.trials[0].datetime_start
+    ).total_seconds()
+
+    print(
+        f"{processes} processes took {elapsed:.2f} seconds. Best trial value: {study.best_trial.value:.2e}"
+    )
 
 
 if __name__ == "__main__":
     processes = 4
-    start = time.time()
     run_multiprocessing(processes=processes)
-    end = time.time()
-    print(f"{processes} processes took {end - start:.2e} seconds")
