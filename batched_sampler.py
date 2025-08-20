@@ -13,10 +13,18 @@ SAMPLERMODE = Literal["stacking", "batched_acqf_eval", "multiprocessing", "origi
 
 
 class BatchedSampler(GPSampler):
-    def __init__(self, mode: SAMPLERMODE, *args, **kwargs):
+    def __init__(
+        self, mode: SAMPLERMODE, processes: int | None = None, *args, **kwargs
+    ):
         super().__init__(*args, **kwargs)
         self.worker_pool = None
-        self.processes: int | None = None
+        if mode == "multiprocessing" and processes is None:
+            raise ValueError("Processes must be specified for multiprocessing mode.")
+        if mode != "multiprocessing" and processes is not None:
+            raise ValueError(
+                "Processes must not be specified for non-multiprocessing mode."
+            )
+        self.processes: int | None = processes
         self.mode: SAMPLERMODE = mode
 
     def create_worker_pool(self, processes: int):

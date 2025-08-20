@@ -32,8 +32,9 @@ def test_multiprocessing_sampler_matches_original(processes):
     original_study.optimize(objective, n_trials=N_TRIALS)
 
     # Batched (parallelized local search inside acquisition optimization)
-    batched_sampler = BatchedSampler(mode="multiprocessing", seed=SEED)
-    batched_sampler.create_worker_pool(processes=processes)
+    batched_sampler = BatchedSampler(
+        mode="multiprocessing", processes=processes, seed=SEED
+    )
     batched_study = optuna.create_study(sampler=batched_sampler)
     with batched_sampler:
         batched_study.optimize(objective, n_trials=N_TRIALS)
