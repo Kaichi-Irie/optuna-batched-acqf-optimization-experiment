@@ -25,7 +25,7 @@ def objective(trial):
 
 
 @pytest.mark.parametrize("processes", [1, 2, 4])
-def test_batched_sampler_matches_original(processes):
+def test_multiprocessing_sampler_matches_original(processes):
     # Reference (original GPSampler)
     original_sampler = optuna.samplers.GPSampler(seed=SEED)
     original_study = optuna.create_study(sampler=original_sampler)
