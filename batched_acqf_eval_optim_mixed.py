@@ -111,7 +111,7 @@ def _gradient_ascent(
     return normalized_params_buffer, -neg_fval_opts, True
 
 
-def local_search_mixed_stacked(
+def local_search_mixed_batched_acqf_eval(
     acqf: BaseAcquisitionFunc,
     initial_normalized_params_list: np.ndarray,  # (D,) -> (B,D)
     *,
@@ -218,7 +218,7 @@ def optimize_acqf_mixed(
     )
     assert x_warmstarts.shape == (batch_size, dimension)
     # xs: (B,D)
-    xs, fs = local_search_mixed_stacked(acqf, x_warmstarts, tol=tol)
+    xs, fs = local_search_mixed_batched_acqf_eval(acqf, x_warmstarts, tol=tol)
     assert xs.shape == (batch_size, dimension)
     assert fs.shape == (batch_size,)
     for x, f in zip(xs, fs):
