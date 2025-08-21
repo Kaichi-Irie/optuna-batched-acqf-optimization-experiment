@@ -36,7 +36,7 @@ def execute_benchmark(
         function_id=function_id, dimension=dimension, instance_id=1
     )
     sampler = BatchedSampler(mode=mode, seed=seed)
-    log_file = f"{function_id}_{dimension}D_{mode}_{n_trials}_trials.jsonl"
+    log_file = f"f{function_id}_{dimension}D_{seed}_{mode}_{n_trials}_trials.jsonl"
     storage = JournalStorage(JournalFileBackend(os.path.join(output_dir, log_file)))
 
     study = optuna.create_study(
@@ -71,32 +71,32 @@ def execute_benchmark(
     print(f"{len(cfg.MAX_NITS)=}, {len(cfg.TOTAL_NITS)=}")
 
     if cfg.MAX_NITS and cfg.TOTAL_NITS:
+        # first 10 trials are warm-up
         assert len(cfg.MAX_NITS) == len(cfg.TOTAL_NITS) == len(study.trials) - 10
-
-    iteration_info = {
-        "max_nits": cfg.MAX_NITS,
-        "total_nits": cfg.TOTAL_NITS,
-    }
-    # save as JSONL
-    with open(os.path.join(output_dir, "iterinfo_" + log_file), "w") as f:
-        f.write(json.dumps(iteration_info) + "\n")
+        iteration_info = {
+            "max_nits": cfg.MAX_NITS,
+            "total_nits": cfg.TOTAL_NITS,
+        }
+        # save as JSONL
+        with open(os.path.join(output_dir, "iterinfo_" + log_file), "w") as f:
+            f.write(json.dumps(iteration_info) + "\n")
 
 
 # %%
 if __name__ == "__main__":
-    seeds = [42]
-    n_trials = 200  # 回せるだけ回す~500
+    seeds = [42, 43, 44]  # [42, 43, 44]
+    n_trials = 300  # 回せるだけ回す~500
     # https://numbbo.github.io/coco/testsuites/bbob
-    function_ids = [10,15,20]  # [1,6,10,15,20]
-    dimensions = [20]
+    function_ids = [1, 6, 10, 15, 20]  # [1,6,10,15,20]
+    dimensions = [5, 10, 20]  # [5,10,20]
     modes: list[SAMPLERMODE] = [
         "stacking",
         "batched_acqf_eval",
         "multiprocessing",
         "original",
     ]
-    for function_id, dimension, mode, seed in product(
-        function_ids, dimensions, modes, seeds
+    for function_id, dimension, seed, mode in product(
+        function_ids, dimensions, seeds, modes
     ):
         execute_benchmark(
             function_id=function_id,
