@@ -1,0 +1,2 @@
+MAX_NITS = []
+TOTAL_NITS = []

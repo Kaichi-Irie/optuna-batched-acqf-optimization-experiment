@@ -10,6 +10,7 @@ from optuna._gp.scipy_blas_thread_patch import (
 )
 from optuna.logging import get_logger
 
+import benchmark.iterinfo_global_variables as cfg
 from batched_lbfgsb import batched_lbfgsb
 
 if TYPE_CHECKING:
@@ -94,7 +95,7 @@ def _gradient_ascent(
         # make individual bounds numpy array
         bounds = np.array([(0, 1 / s) for s in lengthscales])  # (D, 2)
         # TODO
-        scaled_cont_x_opts, neg_fval_opts, infos = batched_lbfgsb(
+        scaled_cont_x_opts, neg_fval_opts, info = batched_lbfgsb(
             func_and_grad=negative_acqf_with_grad,  # type: ignore
             bounds=bounds,
             x0=x0,
@@ -103,6 +104,10 @@ def _gradient_ascent(
         )
         assert scaled_cont_x_opts.shape == (batch_size, dimension)
         assert neg_fval_opts.shape == (batch_size,)
+
+        cfg.MAX_NITS.append(max(info["n_iterations"]))
+        cfg.TOTAL_NITS.append(sum(info["n_iterations"]))  # type: ignore
+
         # scaled_cont_x_opts = scaled_cont_x_opts.reshape(batch_size, dimension)
 
     normalized_params_buffer[:, continuous_indices] = (
