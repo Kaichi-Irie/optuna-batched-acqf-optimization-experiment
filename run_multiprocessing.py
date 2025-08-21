@@ -39,5 +39,5 @@ def run_multiprocessing(processes):
 
 
 if __name__ == "__main__":
-    processes = 4
-    run_multiprocessing(processes=processes)
+    # if processes is None, then multiprocessing will use all available cores
+    run_multiprocessing(processes=8)

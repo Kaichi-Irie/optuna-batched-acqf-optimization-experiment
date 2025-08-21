@@ -19,7 +19,7 @@ class BatchedSampler(GPSampler):
         super().__init__(*args, **kwargs)
         self.worker_pool = None
         if mode == "multiprocessing" and processes is None:
-            raise ValueError("Processes must be specified for multiprocessing mode.")
+            processes = multiprocessing.cpu_count()
         if mode != "multiprocessing" and processes is not None:
             raise ValueError(
                 "Processes must not be specified for non-multiprocessing mode."
