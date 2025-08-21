@@ -20,25 +20,20 @@ class BatchedSampler(GPSampler):
         self.worker_pool = None
         if mode == "multiprocessing" and processes is None:
             processes = multiprocessing.cpu_count()
-        if mode != "multiprocessing" and processes is not None:
+        elif mode != "multiprocessing" and processes is not None:
             raise ValueError(
                 "Processes must not be specified for non-multiprocessing mode."
             )
         self.processes: int | None = processes
         self.mode: SAMPLERMODE = mode
 
-    def create_worker_pool(self, processes: int):
-        if self.mode != "multiprocessing":
-            raise ValueError(f"Invalid mode: {self.mode}.")
-        self.processes = processes
-        self.worker_pool = multiprocessing.Pool(processes=processes)
-
     def __enter__(self):
         """
         Create a worker pool for multiprocessing.
         """
         if self.mode == "multiprocessing" and self.processes is not None:
-            self.create_worker_pool(self.processes)
+            ctx = multiprocessing.get_context("spawn")
+            self.worker_pool = ctx.Pool(processes=self.processes)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
