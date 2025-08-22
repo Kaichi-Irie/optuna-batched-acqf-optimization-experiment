@@ -5,7 +5,7 @@ Optunaのサブルーチンである獲得関数をマルチスタートで最�
 ```
 uv add scipy==1.14
 uv add optuna torch numpy pytest
-uv add --dev ipykernel # optional
+uv add --dev snakeviz ipykernel # optional
 ```
 
 # test
