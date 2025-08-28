@@ -10,8 +10,6 @@ from optuna._gp.scipy_blas_thread_patch import (
 )
 from optuna.logging import get_logger
 
-import benchmark.iterinfo_global_variables as cfg
-
 if TYPE_CHECKING:
     import scipy.optimize as so
     from optuna._gp.acqf import BaseAcquisitionFunc
@@ -109,8 +107,6 @@ def _gradient_ascent(
         )
         # reshape from (B*D,) to (B,D)
         scaled_cont_x_opt = scaled_cont_x_opt.reshape(batch_size, dimension)
-        cfg.MAX_NITS.append(info["nit"])
-        cfg.TOTAL_NITS.append(info["nit"])
 
     if -neg_fval_opt > initial_fval and info["nit"] > 0:  # Improved.
         # `nit` is the number of iterations.
