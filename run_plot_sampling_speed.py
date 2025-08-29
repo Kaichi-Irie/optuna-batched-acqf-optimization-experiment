@@ -25,8 +25,8 @@ def load(mode, dimension=20, function_id=1, seed=42, n_trials=300):
 
 color_dict = {
     "batched_acqf_eval": "darkred",
-    "stacking": "yellow",
-    "multiprocessing": "blue",
+    "stacking": "blue",
+    "multiprocessing": "gray",
     "original": "black",
 }
 
@@ -53,15 +53,17 @@ for mode in ["batched_acqf_eval", "stacking", "multiprocessing", "original"]:
     study = load(mode=mode, function_id=function_id)
     studies[mode].append(study)
 
+plt.rcParams["font.size"] = 15
+plt.figure(figsize=(12, 9))
+
 
 ax = plot_sampling_speed.plot_sampling_speed(
     dict(studies), color_dict=color_dict, marker_dict=marker_dict
 )
+
 ax.set_xscale("linear")
 ax.set_yscale("linear")
-ax.set_title(f"Elapsed Time at Each Trial (FID={function_id}, Dimension={dimension})")
+ax.set_title(f"Elapsed Time at Each Trial (FID={function_id}, D={dimension})")
 
 plot_image = f"plot_f{function_id}_{dimension}D.png"
-plt.savefig(os.path.join(OUTPUT_DIR, plot_image), bbox_inches="tight")
-
-# %%
+plt.savefig(os.path.join(OUTPUT_DIR, plot_image), bbox_inches="tight", dpi=900)
