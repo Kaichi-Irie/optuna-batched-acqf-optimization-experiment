@@ -28,13 +28,14 @@ total_nits_stacking = data_stacking["total_nits"]
 batch_size = 10
 total_nits_stacking_modified = [x * batch_size for x in total_nits_stacking]
 max_nits_original = data_batched_acqf["max_nits"]
+max_nits_original_modified = [x * batch_size for x in max_nits_original]
 total_nits_original = data_batched_acqf["total_nits"]
 # %%
 # --- 2. データをグラフ描画に適した形式に整形 ---
 # 各リストをPandas DataFrameに変換し、一つのDataFrameに結合します
 data_dict = {
-    "Stacking Total Nits": total_nits_stacking_modified,
-    "Original Max Nits": max_nits_original,
+    "Stacking Total Nits * B": total_nits_stacking_modified,
+    "Original Max Nits * B": max_nits_original_modified,
     "Original Total Nits": total_nits_original,
 }
 
@@ -113,5 +114,3 @@ plt.savefig(
     dpi=600,
 )
 plt.show()
-
-# %%
