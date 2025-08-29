@@ -48,16 +48,16 @@ def _gradient_ascent(
     """
     if len(continuous_indices) == 0:
         return initial_params_list, initial_fvals, False
-    normalized_params_buffer = initial_params_list.copy()
+    normalized_params = initial_params_list.copy()
 
     def negative_acqf_with_grad(scaled_x: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         # Scale back to the original domain, i.e. [0, 1], from [0, 1/s].
         not_converged_batch_size = len(scaled_x)
-        normalized_params_buffer[:not_converged_batch_size, continuous_indices] = (
+        normalized_params[:not_converged_batch_size, continuous_indices] = (
             scaled_x * lengthscales
         )
         x_tensor = torch.from_numpy(
-            normalized_params_buffer[:not_converged_batch_size]
+            normalized_params[:not_converged_batch_size]
         ).requires_grad_(True)
         fvals = acqf.eval_acqf(x_tensor)
         fvals.sum().backward()
@@ -70,17 +70,17 @@ def _gradient_ascent(
     with single_blas_thread_if_scipy_v1_15_or_newer():
         scaled_cont_x_opts, neg_fval_opts, info = batched_lbfgsb(
             func_and_grad=negative_acqf_with_grad,
-            x0=normalized_params_buffer[:, continuous_indices] / lengthscales,
+            x0=normalized_params[:, continuous_indices] / lengthscales,
             bounds=np.array([(0, 1 / s) for s in lengthscales]),
             pgtol=math.sqrt(tol),
             max_iters=200,
         )
 
 
-    normalized_params_buffer[:, continuous_indices] = (
+    normalized_params[:, continuous_indices] = (
         scaled_cont_x_opts * lengthscales
     )
-    return normalized_params_buffer, -neg_fval_opts, True
+    return normalized_params, -neg_fval_opts, True
 
 
 def local_search_mixed_batched_acqf_eval(
@@ -159,7 +159,8 @@ def optimize_acqf_mixed(
         chosen_idxs = np.append(chosen_idxs, additional_idxs)
     best_x = sampled_xs[max_i, :]
     best_f = float(f_vals[max_i])
-    
+
+
     x_warmstarts = np.vstack(
         [sampled_xs[chosen_idxs, :], warmstart_normalized_params_array]
     )
