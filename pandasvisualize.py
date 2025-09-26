@@ -6,7 +6,7 @@ import pandas as pd
 # --- データ準備 ---
 # summary.jsonlを読み込む
 df_list = []
-with open("benchmark/output/summary_tmp.jsonl", "r") as f:
+with open("benchmark/output/summary_pfncluster.jsonl", "r") as f:
     for line in f:
         data = json.loads(line)
         df = pd.DataFrame(data, index=[0])
@@ -19,7 +19,7 @@ df
 # 各設定（function_id, dimension, mode）ごとに平均値を計算
 # seedの違いを平均して、結果を安定させる
 summary_df = (
-    df.groupby(["function_id", "dimension", "mode"])
+    df.groupby(["objective_type","mode"])
     .agg(
         elapsed_mean=("elapsed", "mean"),
         best_value_mean=("best_value", "mean"),

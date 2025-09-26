@@ -17,8 +17,9 @@ class TensorOperationsBenchmark:
         self.k = torch.rand((batch_size, n_trials), dtype=torch.float64)
         self.C = torch.rand((n_trials, n_trials), dtype=torch.float64)
 
-    def execute(self) -> None:
-        ((self.batch_matrix[..., None, :] - self.X[..., None, :, :]) ** 2).matmul(
-            self.weights
-        )
-        torch.linalg.vecdot(self.k, self.k.matmul(self.C))
+    def execute(self, number=10) -> None:
+        for _ in range(number):
+            _ = ((self.batch_matrix[..., None, :] - self.X[..., None, :, :]) ** 2).matmul(
+                self.weights
+            )
+            _ = torch.linalg.vecdot(self.k, self.k.matmul(self.C))
